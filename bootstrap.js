@@ -1,10 +1,10 @@
 /**
  * Resource tool to deploy and reload configuration when g
  */
-var http 			= require('http'),
-	App 			= require('./lib/app.js').App.instance(),
-	fs 				= require('fs')
-	url 			= require('url');
+var http			= require('http'),
+	App				= require('./lib/app.js').App.instance(),
+	fs				= require('fs')
+	url				= require('url');
 
 const KEYS = ['DEV_KEY'];
 
