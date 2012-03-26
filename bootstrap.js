@@ -2,12 +2,15 @@
  * Resource tool to deploy and reload configuration when g
  */
 var http 			= require('http'),
-	Router 			= require('./router.js').Router.instance(),
-	url 			= require('url'),
-	exec 			= require('child_process').exec;
+	App 			= require('./lib/app.js').App.instance(),
+	fs 				= require('fs')
+	url 			= require('url');
 
 const KEYS = ['DEV_KEY'];
-const PATH = "SMOS-PATH";
+
+(function(){
+	process.chdir(__dirname);
+})();
 
 http.createServer(function(req, res)
 {
@@ -21,21 +24,25 @@ http.createServer(function(req, res)
 			"msg": "An error occured",
 		}));
 	}
-
 	params.pathname = params.pathname.slice(1).split('/');
 
-	Router.params = params;
-	Router.emit(params.pathname[0], req, res, params);
-}).listen(8080);
+	App.params 		= params;
+	App.Response 	= res;
+	App.Request 	= req;
+	App.PATH 		= __dirname;
 
-Router.on('development', function(req, res)
-{
-	if(this.params.pathname[1] == "update")
-	{	
-		exec('cat bootstrap.js', {'cwd': PATH}, function(code, out, err)
+	var controller_name = './controller/' + params.pathname[0] + '.js';
+	fs.stat(controller_name, function(err)
+	{
+		if(err)
 		{
-			res.end(out);
-		})
-	}
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-})
+			App.respond('Not found: /' + params.pathname.join('/'), 404);
+		} else
+		{
+			var controller = require(controller_name);
+
+			var action = params.pathname.slice(1).join('/');
+			App.send(action);
+		}
+	});
+}).listen(8080);
